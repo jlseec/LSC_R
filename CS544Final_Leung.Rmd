@@ -1,0 +1,373 @@
+---
+title: "Popular Song Analysis"
+author: 
+output:
+  html_document:
+    fig_width: 8
+    code_folding: hide
+    highlight: tango
+    toc: true
+    toc_float:
+      collapsed: true
+  pdf_document:
+    toc: true
+---
+
+### Leung See Ching Jody - CS544 Term Project
+
+### June 15, 2024
+
+```{r setup, include=FALSE}
+
+load("/Users/seemewhip/Library/Mobile Documents/com~apple~CloudDocs/BUMET/Project/Songs.RData")
+library(plotly)
+library(tidyverse)
+
+```
+
+# 1 - Dataset Details
+
+The dataset obtained from Kaggle offers comprehensive information on the top 953 songs, focusing on their performance across various playlists and charts on popular music platforms such as Apple, Spotify, Deezer, and Shazam. The dataset includes essential details like track name, release date (day, month, year), and artist name. It also provides valuable insights into the songs' popularity by presenting the total number of streams they have amassed. Additionally, the dataset includes features for each song, such as danceability, energy, and mode, which can provide insights into the characteristics of the songs and their popularity.
+
+# 2 - Objective
+
+The objective to identify the key characteristics of the top songs that contribute to their popularity. Additionally, the goal is to examine how these characteristics vary across different music charts and platforms.
+
+# 3 - Categorical
+
+In this analysis, we will explore the distribution of key, mode, and release month for the top songs.
+
+Below are 2 barplot and a pie chart to show the distribution of certain attributes of the top songs.
+
+### 3.1 Month distribution of the Top Songs
+
+Findings: January and May has the highest number of top songs with 134 and 128 releases respectively. The number of song released in the rest of the months are mostly evenly distributed with some minor fluctuations along the way.
+
+```{r echo = TRUE}
+
+#Barplot
+
+month <- table(Songs$released_month)
+
+bar1 <- plot_ly(Songs, x = 1:12, y = month,  type = 'bar',name = "Population",
+                marker = list(color = 'rgb(161, 194, 203)', line = list(color = 'rgb(8, 48, 7)'))) %>%
+  layout(xaxis = list(
+             title = "Month"),
+             yaxis = list(
+             title = "Frequency"))
+
+bar1
+```
+
+### 3.2 Key distribution of the Top Songs
+
+Findings: The most common key is C# key with 120 songs in this key. This is significantly higher than any other key. The next most common keys are G, G#, F, each with over 80 songs.
+
+```{r echo = TRUE}
+
+#Barplot
+
+key <- table(Songs$key)
+bar2 <- plot_ly(Songs, x = c("A", "A#", "B", "C#", "D", "D#", "E", "F", "F#", "G", "G#"), y = key,  type = 'bar',
+                marker = list(color = 'rgb(212, 178, 167)', line = list(color = 'rgb(8, 48, 7)'))) %>%
+  layout(xaxis = list(
+             title = "Key"),
+             yaxis = list(
+             title = "Frequency")
+)
+bar2
+```
+
+### 3.3 Mode distribution of the Top Songs
+
+Findings: The pie chart indicates that major mode is more commonly used than minor mode among the top-performing tracks, with a majority of 57.7% being in major keys compared to 42.3% in minor keys.
+
+```{r echo = TRUE}
+
+#Pie Chart
+mode <- table(Songs$mode)
+colors <-c('rgb(241, 215, 150)','rgb(174, 190, 147)','rgb(212, 178, 167)','rgb(161, 194, 203)')
+pie1 <- plot_ly(Songs, labels = c('Major', 'Minor'), values= mode,  type = 'pie',
+                marker = list(colors = colors, line = list(colors = '#FFFFFF', width = 1))) %>%
+  layout()
+pie1
+```
+
+# 4 - Numerical
+
+In this analysis, we are going investigate on the streams, playlists featured in different platforms.
+
+### 4.1 Streams distribution of the Top Songs
+
+Findings: The box leans towards the left side, which suggests that the streams data is skewed to the left, with a concentration of values towards the lower end. The lower whisker is shorter than the upper whisker, indicating a smaller range of values towards the lower end of the distribution.
+
+```{r echo = TRUE}
+library(tidyverse)
+
+#Boxplot
+
+box1 <- plot_ly(x = Songs$streams, boxpoints = FALSE, type = 'box',
+                              marker = list(color = 'rgb(189,210,224)'),
+                              line = list(color = 'rgb(189, 210, 224)'),
+                              name = "Streams")
+box1
+
+```
+
+### 4.2 Songs featured in playlists in terms of different platforms
+
+Findings:
+
+Apple Playlists (blue bars): As the highest number of playlists featured in Apple Music is 672, which is Blinding Lights by the Weeknd. The blue bar tends to concentrate in the first 0 to 499 range.
+
+Deezer Playlists (yellow bars): Similar to Apple Playlists, songs featured mostly within 0-499 playlists, so the highest bar is concentrated in the first 0 to 499 range. However, the distribution of Deezer playlist placements is more gradual compared to Apple Music.
+
+Spotify (red bars): The Spotify playlist placements are generally lower than both Apple Music and Deezer. The playlist distribution is more uniform compared to the other two platforms.
+
+All three graph shows an exponential distribution.
+
+```{r echo = TRUE}
+ 
+ 
+#Histogram        
+hist1 <- plot_ly(x = Songs$in_apple_playlists, type="histogram",name = 'Apple Playlist',
+                 marker = list(color = 'rgb(161, 194, 203)', line = list(color = 'rgb(8, 48, 7)')))
+                hist1 <-add_trace(hist1, x = Songs$in_spotify_playlists, name = 'Spotify Playlists',
+                marker = list(color = 'rgb(212, 178, 167)', line = list(color = 'rgb(8, 48, 7)'))) %>%
+                add_trace(hist1, x = Songs$in_deezer_playlists, name = 'Deezer Playlists',
+                marker = list(color = 'rgb(241, 215, 150)', line = list(color = 'rgb(8, 48, 7)'))) %>%
+          layout(
+           barmode = "group",
+           xaxis = list(
+             title = "No. of Playlists Featured",
+             range = c(0,13000 )
+           ),
+           yaxis = list(
+             title = "Frequency",
+             range = c(0, 250)
+           )
+         )
+hist1
+                
+```
+
+# 
+
+# 5 - Scatter Analysis
+
+In this analysis, we are going to investigate if there are any relationships between streams and other variables. Scatter plot is used because it shows the correlation between two variables and identify trends.
+
+### 5.1 Spotify Playlists featured vs Streams
+
+Findings: As the number of streams increases, the number of playlists in Spotify also tends to increase. The distribution of points is not uniform, with a higher concentration of songs in the lower ranges of both playlists and streams, and fewer songs with very high playlist counts and streams volumes.
+
+```{r echo = TRUE}
+
+# Scatter analysis
+
+#spotifyplaylist vs streams
+#acousticnness vs streams
+#energy vs streams
+
+energy <- Songs$`energy_%`
+acoustic <-Songs$`acousticness_%`
+streams <- Songs$streams
+playlist1 <- Songs$in_spotify_playlists
+
+
+scatter1 <- plot_ly(data = Songs , x = ~streams, y = ~playlist1, type="scatter", mode="markers",
+                    marker = list(size = 8,
+                                  color = "rgba(241, 215, 150,1)",
+                                  line = list(color = 'rgba(8, 48, 7)'))) 
+layout(scatter1, xaxis = list(
+             title = "Streams"),
+             yaxis = list(
+             title = "Spotify Playlists Featured"))
+
+
+```
+
+### 5.2 Energy and Acousticness vs Streams
+
+Findings:
+
+1.  Energy and streams:
+
+    -   The blue scatter points (energy) indicate that as the total stream count increases, the energy percentage of the songs also tends to increase. There is no clear linear correlation between energy and streams. Yet, the energy percentage concentrated in around 40-90, this implies that high-streaming songs are often more energetic in their musical properties.
+
+2.  Acousticness and streams:
+
+    -   There is not much a correlation between the two. However, the majority of songs seem to have acousticness values between 0-40, which may be a common range. This suggests that songs with a wide range of acoustic properties can still achieve relatively lower stream counts.
+
+```{r echo = TRUE}
+
+#energy vs streams
+#acousticnness vs streams
+
+
+scatter2  <- plot_ly(data = Songs , x = ~streams, y = ~energy, type="scatter", mode="markers", name = "Energy",
+                marker = list(size = 8,
+                              color = "rgba(189, 210, 224,1)",
+                              line = list(color = "rgba(189, 210, 224"))) 
+         scatter2 <- add_trace(scatter2, type="scatter", y = ~acoustic, mode="markers",name = "Acousticness",
+          marker = list(size = 8,
+          color = "rgba(212, 178, 167, 1)",
+          line = list(color = "rgba(212, 178, 167)")))
+layout(scatter2, xaxis = list(
+             title = "Streams"),
+             yaxis = list(
+             title = "Energy/Acousticness"))
+
+
+
+```
+
+# 6 - Central Limit Theorem
+
+The central limit theorem states that the distribution of sample means follows a normal distribtion even when the population doesn not follow a normal distribution. We are going to draw 1000 random samples with sample sizes 10, 20, 30, 40 respectively. Below 4 histograms shows that the sample mean of 4 groups of samples sizes follow a normal distribution.
+
+```{r echo=TRUE}
+library(plotly)
+library(sampling)
+
+set.seed(3605)
+samples <-1000
+xbar <-numeric(samples)
+for (i in 1:samples) {
+  xbar[i] <- mean(sample(Songs$streams, size =10,  replace= FALSE))}
+xbar10 <-xbar
+
+xbar <-numeric(samples)
+for (i in 1:samples) {
+  xbar[i] <- mean(sample(Songs$streams, size =20,  replace= FALSE))}
+xbar20 <-xbar
+
+xbar <-numeric(samples)
+for (i in 1:samples) {
+  xbar[i] <- mean(sample(Songs$streams, size =30,  replace= FALSE))}
+xbar30 <-xbar
+
+xbar <-numeric(samples)
+for (i in 1:samples) {
+  xbar[i] <- mean(sample(Songs$streams, size =40,  replace= FALSE))}
+xbar40 <-xbar
+
+
+hist2 <- plot_ly(x = xbar10, type="histogram",name = 'Sample size = 10',
+marker = list(color = 'rgb(161, 194, 203)', line = list(color = 'rgb(8, 48, 7)')))
+
+hist3 <- plot_ly(x = xbar20, type="histogram",name = 'Sample size = 20',
+marker = list(color = 'rgb(174, 190, 147)', line = list(color = 'rgb(8, 48, 7)')))
+
+hist4 <- plot_ly(x = xbar30, type="histogram",name = 'Sample size = 30',
+marker = list(color = 'rgb(212, 178, 167)', line = list(color = 'rgb(8, 48, 7)')))
+
+hist5 <- plot_ly(x = xbar40, type="histogram",name = 'Sample size = 40',
+marker = list(color = 'rgb(241, 215, 150))', line = list(color = 'rgb(8, 48, 7)')))
+
+#Mix
+plotly:: subplot(hist2, hist3, nrows = 2)
+plotly:: subplot(hist4, hist5, nrows = 2)
+
+
+
+```
+
+Findings: The sample mean of sample size 10, 20, 30, 40 are around 500,000,000 to 515,000,000 which is close to the population mean 513597931. The sd decreases as the sample size increases.
+
+```{r echo=TRUE}
+cat(cat("Population:","Mean =", mean(Songs$streams), ", SD =",sd(Songs$streams),"\n"),
+cat("Sample Size = 10",", Mean = ", mean(xbar10), ", SD = ", sd(xbar10), "\n")
+,cat("Sample Size = 20",", Mean = ", mean(xbar20), ", SD = ", sd(xbar20), "\n")
+,cat("Sample Size = 30",", Mean = ", mean(xbar30), ", SD = ", sd(xbar30), "\n")
+,cat("Sample Size = 40",", Mean = ", mean(xbar40), ", SD = ", sd(xbar40), "\n"))
+
+```
+
+# 7 - Sampling Methods
+
+Below are the histograms showing the released months distribution of 250 samples. 3 different kinds of sampling methods have been used.
+
+1.  SRSWOR: 250 samples would be picked randomly without replacement.
+2.  Systematic Sampling: 250 samples would be picked systematically.
+3.  Stratified Sampling: A total of 250 samples each from minor songs and major songs would be picked. As display in section 3.3, the number of top songs in major and minor is proportionally different. Stratified sampling is used to pick data from this two groups so that they have the same chance of getting picked. After calculation, it is discovered that 144 has to be picked from the major group and 106 from the minor group so that their probabilities of getting picked aligned to 0.26.
+
+Findings: The distribution of song releases observed in the stratified sampling approach appears to be more representative of the overall population distribution. January and May still stand out as the months with the highest release activity, but the song releases in the other months are more evenly distributed,
+
+```{r echo=TRUE}
+library(plotly)
+library(sampling)
+set.seed(3605)
+x <- subset(Songs, select = c(track_name, released_month, mode))
+
+#SRSWOR(data wrangling)
+tibble_1 <- as_tibble(Songs)
+s <- srswor(250, nrow(tibble_1))
+rows <- (1:nrow(tibble_1))[s!=0]
+tibble_sample <- tibble_1[rows,]
+table4 <- as.data.frame(table(tibble_sample$released_month))
+table4 <-as_tibble(table4) 
+colnames(table4) <- c("Month", "Frequency")
+bar5 <- plot_ly(table4, x = ~`Month`, y = ~`Frequency`,  type = 'bar', name = "SRSWOR",
+                marker = list(color = 'rgb(174, 190, 147)', line = list(color = 'rgb(8, 48, 7)')))
+
+#Systematic 
+sample <- inclusionprobabilities(
+  x$released_month, 250)
+s <- UPsystematic(sample)
+sample.b <- x[s != 0, ]
+table1 <- as.data.frame(table(sample.b$released_month))
+
+bar3 <- plot_ly(table1, x = table1$Var1, y = table1$Freq,  type = 'bar', name = "Systematic Sampling",
+                marker = list(color = 'rgb(212, 178, 167)', line = list(color = 'rgb(8, 48, 7)')))
+
+#Strata
+set.seed(3605)
+y <- subset(Songs, select = c(mode))
+order.index <- order(y$mode)
+ordered.y <- y[order.index, ]
+freq <- table(ordered.y$mode) 
+
+st.sizes <- 250 * (freq/sum(freq))
+st <- strata(ordered.y, stratanames = c("mode"),
+             size = c(144,106), method = "srswor", description =FALSE)
+st.1 <- getdata(x,st)
+table2 <- as.data.frame(table(st.1$released_month))
+bar4 <- plot_ly(table2, x = table2$Var1, y = table2$Freq,  type = 'bar', name = "Stratified Sampling",
+                marker = list(color = 'rgb(241, 215, 150)', line = list(color = 'rgb(8, 48, 7)')))
+
+
+bar1 <- bar1 %>% layout(annotations = list(
+  x = 6, y = 140,    
+  text = "Population",
+      showarrow = FALSE,
+      font = list(size = 17)))
+
+bar5 <- bar5 %>% layout(annotations = list(
+  x = 5, y = 40,
+  text = "SRSWOR",
+      showarrow = FALSE,
+      font = list(size = 17)))
+
+bar3 <- bar3 %>% layout(
+    annotations = list(
+      x = 5, y = 40, 
+      text = "Systematic Sampling",
+      showarrow = FALSE,
+      font = list(size = 17)))
+
+bar4 <- bar4 %>% layout(
+    annotations = list(
+      x = 5, y = 40, 
+      text = "Stratified Sampling",
+      showarrow = FALSE,
+      font = list(size = 17))) 
+
+plotly:: subplot(bar1, bar4, nrows = 2)
+plotly:: subplot(bar3, bar5, nrows = 2)
+
+```
+
+# Conclusion
+
+Overall, the chart highlights the differences in playlist placement strategies and preferences across the three major music streaming services. Apple Music appears to have the most concentrated playlist placements, with a few songs dominating the top spots, while Spotify and Deezer have a more even distribution of playlist placements across their top songs. Major is the majority mode and the C# is a common key in the top songs.These insights can be valuable for understanding the various playlist promotion mechanisms and the relative importance of each platform for artists and their music. In various sampling, the stratified sampling approach has yielded a distribution that looks more alike to the real-world pattern of song releases seen in the population.
